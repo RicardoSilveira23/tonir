@@ -15,8 +15,8 @@ const panel = atom({ plugin: 'tonir', key: 'panel' } as const, { isListed: false
 })
 const mainUsage = atom(
   { plugin: 'tonir', key: 'mainUsage' } as const,
-  { cost: 0, tokens: 0, input: 0, cacheRead: 0, startedAt: 0 } as MainUsage,
-  { shape: 'main-usage-2' },
+  { cost: 0, tokens: 0, input: 0, cacheRead: 0, startedAt: 0, contextTokens: 0, contextMax: 0, model: '', isRunning: false } as MainUsage,
+  { shape: 'main-usage-3' },
 )
 const now = atom({ plugin: 'tonir', key: 'now' } as const, 0)
 
@@ -299,16 +299,22 @@ export async function noteTurnComplete($: EngineInterface, e: TurnCompleteInput)
         }
       }),
     )
-  } else if (u !== undefined) {
-    const prompt = u.input_tokens + u.cache_read_input_tokens + u.cache_creation_input_tokens
+  } else {
+    const prompt = u === undefined ? 0 : u.input_tokens + u.cache_read_input_tokens + u.cache_creation_input_tokens
 
-    await update($, mainUsage, old => ({
-      ...old,
-      cost: old.cost + costOf(u.model, u),
-      tokens: old.tokens + prompt + u.output_tokens,
-      input: old.input + prompt,
-      cacheRead: old.cacheRead + u.cache_read_input_tokens,
-    }))
+    // The main loop's turn ended: it is idle until its next model request.
+    await update($, mainUsage, old =>
+      u === undefined
+        ? { ...old, isRunning: false }
+        : {
+            ...old,
+            cost: old.cost + costOf(u.model, u),
+            tokens: old.tokens + prompt + u.output_tokens,
+            input: old.input + prompt,
+            cacheRead: old.cacheRead + u.cache_read_input_tokens,
+            isRunning: false,
+          },
+    )
   }
 
   await publishStatus($)
@@ -387,11 +393,31 @@ export const registerAgentsPanel: Register = on => {
     return started
   })
 
-  // Each model request of a subagent: its usage joins the run's, and the latest call is what fills its context.
+  // Each model request of a subagent: its usage joins the run's, and the latest call is what fills its context. A
+  // request of the main loop marks it running and its prompt is what fills the main row's context.
   on('turn.step', async function* ($, e, next) {
     const agentId = e.agentId
 
+    if (agentId === undefined) {
+      try {
+        await update($, mainUsage, old => (old.isRunning && old.model === e.model ? old : { ...old, isRunning: true, model: e.model }))
+      } catch {
+        // the main row lags, the request goes on
+      }
+    }
+
     for await (const chunk of next(e)) {
+      if (agentId === undefined && chunk.kind === 'stop' && chunk.usage !== null) {
+        const u = chunk.usage
+        const prompt = u.input_tokens + u.cache_read_input_tokens + u.cache_creation_input_tokens
+
+        try {
+          await update($, mainUsage, old => ({ ...old, contextTokens: prompt, contextMax: windowOf(e.model), model: e.model }))
+        } catch {
+          // the main row lags, the request goes on
+        }
+      }
+
       if (agentId !== undefined && chunk.kind === 'stop' && chunk.usage !== null) {
         const u = chunk.usage
         const prompt = u.input_tokens + u.cache_read_input_tokens + u.cache_creation_input_tokens
@@ -420,12 +446,37 @@ export const registerAgentsPanel: Register = on => {
   })
 }
 
-// What the pane draws of the agents: every agent the engine knows, the session's totals, and whether the engine
-// has answered yet.
-export async function agentView($: EngineInterface): Promise<{ rows: Row[]; at: number; totals: Totals; isListed: boolean }> {
+// The main loop as one agent of its own: its model, how full its context is, what it has used and whether it runs.
+export type MainView = { model: string; ctx: number; tokens: number; cost: number; time: number; isRunning: boolean }
+
+async function mainView($: EngineInterface, at: number): Promise<MainView> {
+  const m = await read($, mainUsage)
+  let model = m.model
+
+  if (model === '') {
+    try {
+      model = await $.session.model()
+    } catch {
+      // no model to name yet
+    }
+  }
+
+  return {
+    model,
+    ctx: m.contextMax > 0 ? Math.min(100, Math.round((m.contextTokens / m.contextMax) * 100)) : 0,
+    tokens: m.tokens,
+    cost: m.cost,
+    time: m.startedAt > 0 ? Math.max(0, at - m.startedAt) : 0,
+    isRunning: m.isRunning,
+  }
+}
+
+// What the pane draws of the agents: every agent the engine knows, the main loop, the session's totals, and whether
+// the engine has answered yet.
+export async function agentView($: EngineInterface): Promise<{ rows: Row[]; main: MainView; at: number; totals: Totals; isListed: boolean }> {
   const rows = await agentRows($)
   const p: Panel = await read($, panel)
   const at = Math.max(await read($, now), await $.clock.now(), ...rows.map(a => a.startedAt), 0)
 
-  return { rows, at, totals: await sessionTotals($, rows, at), isListed: p.isListed }
+  return { rows, main: await mainView($, at), at, totals: await sessionTotals($, rows, at), isListed: p.isListed }
 }

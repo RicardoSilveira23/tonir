@@ -37,8 +37,9 @@
   and body to the agents in their prompt; they are told to read nothing else of GitHub's for it,
   not its comments, linked issues or links.
 - **Agents.** Each agent of the session is a row with a small sprite for its kind, a thin bar
-  for its progress or context, and its model, tokens, cost and time. A building issue shows its
-  pipeline (ticket, build, check, review) and its crew under it.
+  for its progress or context, and its model, tokens, cost and time. The session's own agent
+  has a row too, Main, with its context, use and whether it is working or idle. A building
+  issue shows its pipeline (ticket, build, check, review) and its crew under it.
 - **A bar above the prompt**, when you turn it on: the pane's top item in one line, and an
   "Open Tonir" button.
 

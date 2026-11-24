@@ -118,7 +118,8 @@ test('narrow: title and the slot only', async ($, on) => {
 
   expect(await ui.find({ key: 'build:7' })).toBeDefined()
   expect(await texts(ui)).toContain('Add the thing')
-  expect((await ui.findAll({ type: 'Svg' })).filter(s => !/, (open|folded)$/.test(String(s.props.alt))).length).toBe(0)
+  // Only the section arrows and the Main row's sprite and bar are drawn: no rings beside the issues.
+  expect((await ui.findAll({ type: 'Svg' })).filter(s => !/, (open|folded)$|^main sprite$|^Main: /.test(String(s.props.alt))).length).toBe(0)
   expect((await texts(ui)).some(t => t.startsWith('session folder'))).toBe(false)
   await ui.unmount()
 })

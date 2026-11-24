@@ -1,6 +1,6 @@
 {
   "name": "tonir",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Tonir: an Issues pane that follows the repo you are working in, with a one-press Build pipeline, and a live Agents pane with step progress, context, cost and time.",
   "author": {
     "name": "Ricardo Silveira"

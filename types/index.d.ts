@@ -132,6 +132,12 @@ export type MainUsage = {
   cacheRead: number
   // when the session's clock started, in clock milliseconds; 0 before it is known
   startedAt: number
+  // the main loop's latest model request: its prompt size, its model's window and the model
+  contextTokens: number
+  contextMax: number
+  model: string
+  // true from the main loop's first model request of a turn until the turn completes
+  isRunning: boolean
 }
 
 declare module 'claude-code' {

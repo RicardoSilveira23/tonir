@@ -1359,6 +1359,48 @@ export const registerIssues: Register = on => {
           </Box>
         )
       }
+      // The main loop, as an agent of its own: the session's model, how full its context is, what it has used, and
+      // whether it is working now. The step tool stays with Tonir's own agents, so its bar is its context.
+      const main = av.main
+      const mainWord = main.isRunning ? 'running' : 'idle'
+      const mainRow = (
+        <Box key="agent:main" flexDirection="row" gap={1} alignItems="flex-start" paddingLeft={BUTTON_INSET}>
+          <Svg key="sprite" source={spriteSvg(16, 'main', main.isRunning, !main.isRunning)} alt="main sprite" width={16} height={16} />
+          <Box flexDirection="column" flexGrow={1} overflow="hidden">
+            <Text wrap="wrap">Main</Text>
+            {!isNarrow && (
+              <Text dimColor size="footnote" wrap="wrap">
+                <Text color={colourOfKind('main')}>main</Text>
+                {' · '}
+                {[main.model === '' ? '' : modelName(main.model), `ctx ${main.ctx}%`, fmtTokens(main.tokens), `≈${fmtCost(main.cost)}`].filter(x => x !== '').join(' · ')}
+                {' · '}
+                <Text color={main.isRunning ? TONE.busy : undefined}>{mainWord}</Text>
+                {' · '}
+                {fmtTime(main.time)}
+              </Text>
+            )}
+            <Svg
+              source={barSvg(agentBarW, main.ctx / 100, main.isRunning ? colourOfKind('main') : GREY)}
+              alt={`Main: ${mainWord}, context ${main.ctx}%`}
+              width={agentBarW}
+              height={4}
+            />
+          </Box>
+        </Box>
+      )
+      const mainLine = (
+        <Box key="agent:main" flexDirection="row" alignItems="center" gap={1}>
+          <Text size="footnote" color={colourOfKind('main')}>
+            main
+          </Text>
+          <Box flexGrow={1} overflow="hidden">
+            <Text wrap="truncate-end">{`Main · ${mainWord}`}</Text>
+          </Box>
+          <Text size="footnote" dimColor>
+            {fmtTime(main.time)}
+          </Text>
+        </Box>
+      )
       // Wide: the same agent as one line in the Activity column.
       const agentLine = (a: Row) => (
         <Box key={`agent:${a.id}`} flexDirection="row" alignItems="center" gap={1}>
@@ -1753,6 +1795,7 @@ export const registerIssues: Register = on => {
                   Activity
                 </Text>
                 {building.map(i => buildCard(i))}
+                {av.isListed && mainLine}
                 {av.isListed && others.map(agentLine)}
                 {building.length === 0 && others.length === 0 && (
                   <Text dimColor size="footnote">
@@ -1795,6 +1838,7 @@ export const registerIssues: Register = on => {
             {search}
           </Box>
           {section('building')}
+          {av.isListed && mainRow}
           {agentsSection}
           {section('session')}
           {section('open')}

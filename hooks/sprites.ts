@@ -28,7 +28,7 @@ const PUPIL = '#2a2622'
 export const spriteKindOf = (kind: string): SpriteKind => {
   const k = kind.toLowerCase()
 
-  if (k === 'lead' || k === 'general-purpose' || k === 'build-lead') return 'lead'
+  if (k === 'lead' || k === 'main' || k === 'general-purpose' || k === 'build-lead') return 'lead'
   if (k === 'coder' || k === 'validator' || k === 'researcher') return k
   if (k === 'explore' || k === 'explorer') return 'explorer'
 

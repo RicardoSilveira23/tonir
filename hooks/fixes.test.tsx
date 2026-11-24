@@ -102,7 +102,7 @@ test('an agent resumed for a new round shows once, with round 2 and the totals o
   expect(all).toContain('Other agents · 1 ▾')
   expect(all.filter(t => t === 'Fix it')).toHaveLength(1)
   expect(all.some(t => t.startsWith('coder · ') && t.includes('round 2') && t.includes('≈$4.00'))).toBe(true)
-  expect((await ui.findAll({ type: 'Box' })).filter(b => String(b.key).startsWith('agent:'))).toHaveLength(1)
+  expect((await ui.findAll({ type: 'Box' })).filter(b => String(b.key).startsWith('agent:') && b.key !== 'agent:main')).toHaveLength(1)
   await ui.unmount()
 })
 
