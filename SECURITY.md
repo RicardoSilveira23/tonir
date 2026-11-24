@@ -19,6 +19,10 @@ Tonir turns GitHub issues into work that agents do on your machine, so these mat
   built. Tonir reads the issue again at the press and hands the agents its title and body in the
   prompt; they are told to read nothing else of GitHub's for it. Telling is not enforcing: the
   agents run with your session's permissions, so those permissions are what holds them.
+- Trust follows who opened the issue, not who last edited it: anyone with write access to the repo
+  can change an issue's text. With `members`, a member of the organisation that owns the repo
+  counts, whether or not they have access to that repo. Read an issue as it stands before you
+  press Build.
 - A build works in a git worktree of its own (`isolation`): Claude Code makes it where it can
   isolate a plugin's agent, and otherwise the lead is told to make one. The lead is told to
   commit locally and never push or open a pull request.

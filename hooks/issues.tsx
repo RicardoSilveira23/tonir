@@ -335,7 +335,7 @@ async function listOne($: Dollar, repo: string, timeoutMs: number): Promise<List
   // With `owner`, the rows show Build by the signed-in login, as the press checks it.
   if (slug !== null && config().trustedAuthors === 'owner') {
     try {
-      await viewerLogin($, repo)
+      await viewerLogin($)
     } catch {
       // not known yet: the rows fall back to GitHub's OWNER until it is
     }
@@ -344,7 +344,8 @@ async function listOne($: Dollar, repo: string, timeoutMs: number): Promise<List
   if (slug === null) return { items: [], error: 'No issues: this repo has no GitHub remote yet.', branch, slug: '' }
 
   try {
-    const out = await $.process.run(listArgv(slug), { cwd: repo, timeoutMs })
+    // No cwd for gh: the repo is named in the argv, and an executable inside a discovered repo must never be picked up.
+    const out = await $.process.run(listArgv(slug), { timeoutMs })
 
     if (out.exitCode !== 0) {
       const line = out.stderr.split('\n').find(l => l.trim() !== '') ?? 'gh could not list issues here.'
@@ -710,8 +711,9 @@ async function spawnAs($: Dollar, type: string, args: { cwd: string; description
 // drive path is let through.
 export const isPlainRepoPath = (repo: string): boolean => /^[A-Za-z]:\/[\w .\/-]*$/.test(repo) && !repo.includes('..')
 
-const runGh = async ($: Dollar, argv: string[], cwd: string): Promise<unknown> => {
-  const out = await $.process.run(argv, { cwd, timeoutMs: 20_000 })
+// Like the list in listOne, gh gets no cwd: the argv names the repo, and an executable in a discovered folder must never run.
+const runGh = async ($: Dollar, argv: string[]): Promise<unknown> => {
+  const out = await $.process.run(argv, { timeoutMs: 20_000 })
 
   if (out.exitCode !== 0) throw new Error(out.stderr.split('\n').find(l => l.trim() !== '')?.trim().slice(0, 120) || 'gh failed')
 
@@ -721,9 +723,9 @@ const runGh = async ($: Dollar, argv: string[], cwd: string): Promise<unknown> =
 let viewer = ''
 
 // The signed-in GitHub login, once per process.
-async function viewerLogin($: Dollar, cwd: string): Promise<string> {
+async function viewerLogin($: Dollar): Promise<string> {
   if (viewer === '') {
-    const me = (await runGh($, ['gh', 'api', 'user'], cwd)) as { login?: unknown }
+    const me = (await runGh($, ['gh', 'api', 'user'])) as { login?: unknown }
 
     viewer = typeof me.login === 'string' ? me.login : ''
   }
@@ -744,11 +746,11 @@ const markerFor = (body: string): string => {
 export async function readTicket($: Dollar, repo: string, slug: string, number: number): Promise<Ticket> {
   if (slugOf(`https://github.com/${slug}`) !== slug) throw new Error('no GitHub repository for this folder')
 
-  const info = (await runGh($, ['gh', 'api', `repos/${slug}`], repo)) as { permissions?: { push?: unknown } }
+  const info = (await runGh($, ['gh', 'api', `repos/${slug}`])) as { permissions?: { push?: unknown } }
 
   if (info.permissions?.push !== true) throw new Error(`your GitHub account cannot push to ${slug}`)
 
-  const raw = (await runGh($, ['gh', 'api', `repos/${slug}/issues/${number}`], repo)) as Record<string, unknown>
+  const raw = (await runGh($, ['gh', 'api', `repos/${slug}/issues/${number}`])) as Record<string, unknown>
 
   if ('pull_request' in raw) throw new Error('a pull request, not an issue')
   if (raw.state !== 'open') throw new Error('the issue is no longer open')
@@ -758,7 +760,7 @@ export async function readTicket($: Dollar, repo: string, slug: string, number: 
   const { trustedAuthors } = config()
   const isOk =
     trustedAuthors === 'anyone' ||
-    (trustedAuthors === 'owner' ? author !== '' && author === (await viewerLogin($, repo)) : MEMBERS.includes(association))
+    (trustedAuthors === 'owner' ? author !== '' && author === (await viewerLogin($)) : MEMBERS.includes(association))
 
   if (!isOk) throw new Error('outside author')
 

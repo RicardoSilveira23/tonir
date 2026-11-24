@@ -99,6 +99,8 @@ export function stubs(on: On, options: Options = {}) {
   const ghArgv: string[][] = []
   // Every other gh call (a Build's checks and its read of the issue).
   const ghOther: string[][] = []
+  // The init every gh call got, listing or not.
+  const ghInits: (Record<string, unknown> | undefined)[] = []
   const registered: Record<string, unknown>[] = []
   const opened: string[] = []
   const ended = new Set<string>()
@@ -106,6 +108,12 @@ export function stubs(on: On, options: Options = {}) {
   const gh = options.gh ?? { exitCode: 0, stdout: ISSUE_JSON, stderr: '' }
   const repos = options.repos ?? { 'C:/Code/alpha': 'C:/Code/alpha' }
 
+  const slugAt = (dir: string): string => {
+    const url = options.origins?.[dir] ?? `https://github.com/test/${dir.split('/').pop() ?? ''}.git`
+
+    return /github\.com[:/]([^/]+\/[^/]+?)(?:\.git)?\/?$/.exec(url)?.[1] ?? ''
+  }
+  const folders = (): string[] => [...new Set([...Object.keys(repos), ...Object.keys(options.origins ?? {}), ...Object.keys(options.ghBy ?? {}), ...Object.values(repos), ...(options.gitDirs ?? [])])]
   const clock = mock.clock(on, { now: options.now ?? 1_000_000 })
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('ui.toast', () => ({ value: undefined }))
@@ -191,8 +199,13 @@ export function stubs(on: On, options: Options = {}) {
     touched.push(e.argv.join(' '))
 
     if (e.argv[0] === 'gh') {
-      const where = norm(e.init?.cwd ?? '')
+      ghInits.push(e.init as Record<string, unknown> | undefined)
+      // gh never runs in a repo's folder: any test that gives it one fails here.
+      if (e.init?.cwd !== undefined) throw new Error(`gh was given a working folder: ${e.argv.join(' ')}`)
       const path = e.argv[2] ?? ''
+      const named = /^repos\/([^/]+\/[^/]+)/.exec(path)?.[1] ?? ''
+      // The repo the argv names, as the folder the tests use for it (its origin says which).
+      const where = folders().find(f => slugAt(f) === named) ?? named
       const listed = options.ghBy?.[where] ?? gh
 
       if (!path.endsWith('/issues')) {
@@ -277,7 +290,7 @@ export function stubs(on: On, options: Options = {}) {
     return { value: { isDrawn: true } } as never
   })
 
-  return { touched, spawns, ghCalls, ghArgv, ghOther, statuses, themeCalls, registered, opened, clock }
+  return { touched, spawns, ghCalls, ghInits, ghArgv, ghOther, statuses, themeCalls, registered, opened, clock }
 }
 
 export const done = (agentId?: string) =>

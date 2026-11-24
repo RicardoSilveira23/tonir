@@ -1,6 +1,6 @@
 {
   "name": "tonir",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Tonir: an Issues pane that follows the repo you are working in, with a one-press Build pipeline, and a live Agents pane with step progress, context, cost and time.",
   "author": {
     "name": "Ricardo Silveira"
@@ -9,6 +9,9 @@
   "repository": "https://github.com/RicardoSilveira23/tonir",
   "license": "GPL-3.0-or-later",
   "types": "./types/index.d.ts",
+  "network": {
+    "hosts": ["api.github.com"]
+  },
   "userConfig": {
     "isolation": {
       "type": "string",
@@ -48,7 +51,7 @@
     "trustedAuthors": {
       "type": "string",
       "title": "Whose issues can be built",
-      "description": "members: owner, members and collaborators of the repo. owner: the repo owner only. anyone: every author.",
+      "description": "Decided by who opened the issue. members: the repo's owner, the owning organisation's members and the repo's collaborators. owner: your own GitHub login only. anyone: every author.",
       "options": [
         "members",
         "owner",

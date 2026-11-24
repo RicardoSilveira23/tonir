@@ -147,3 +147,17 @@ test('blocked folders are named to the build agents', { options: { blockedFolder
   expect(spawns[0]?.prompt).toMatch(/Never read, list or write anything in a folder named vault, secrets/i)
   await ui.unmount()
 })
+
+test('in all-repos mode gh is never given a working folder, to list or to build', async ($, on) => {
+  const { ghInits, spawns } = stubs(on, { depth: 3, tree: { 'C:/Code': ['alpha', 'beta'] }, gitDirs: ['C:/Code/alpha', 'C:/Code/beta'] })
+  await startIn($, 'C:/Code')
+  const ui = await $.ui.mount(ISSUES)
+
+  await ui.press({ key: 'build:alpha:7' })
+
+  expect(spawns.length).toBe(1)
+  // The two lists and the press reads: every gh call ran without a cwd.
+  expect(ghInits.length).toBeGreaterThanOrEqual(4)
+  expect(ghInits.every(init => init === undefined || !('cwd' in init))).toBe(true)
+  await ui.unmount()
+})

@@ -35,11 +35,11 @@
   them by number, title, label or author.
 - **Build.** One press on an issue starts a lead agent that works in a git worktree of its own:
   it writes the change with a coder agent, has a validator agent review it, and commits locally.
-  It is told never to push or open a pull request. Only open issues by the repo's owner, members
-  and collaborators can be built, unless you choose otherwise, and only in repos your GitHub
-  account can push to. At the press Tonir reads the issue again from GitHub and hands its title
-  and body to the agents in their prompt; they are told to read nothing else of GitHub's for it,
-  not its comments, linked issues or links.
+  It is told never to push or open a pull request. Only open issues whose author is the repo's
+  owner, a member of the organisation that owns it, or a collaborator can be built, unless you
+  choose otherwise, and only in repos your GitHub account can push to. At the press Tonir reads
+  the issue again from GitHub and hands its title and body to the agents in their prompt; they
+  are told to read nothing else of GitHub's for it, not its comments, linked issues or links.
 - **Agents.** Each agent of the session is a row with a small sprite for its kind, a thin bar
   for its progress or context, and its model, tokens, cost and time. The session's own agent
   has a row too, Main, with its context, use and whether it is working or idle. A building
@@ -91,7 +91,7 @@ Set in `/plugin`, or under `pluginConfigs["tonir@tonir"].options` in Claude Code
 | `leadModel` | `opus` (default), `sonnet`, `haiku`, `fable`, `inherit` | The model of the build's lead agent |
 | `coderAgent` | `coder` (default) | The agent type that writes the code; `general-purpose` when none exists |
 | `validatorAgent` | `validator` (default) | The agent type that reviews it; `general-purpose` when none exists |
-| `trustedAuthors` | `members` (default), `owner`, `anyone` | Whose issues can be built |
+| `trustedAuthors` | `members` (default), `owner`, `anyone` | Whose issues can be built, by who opened them: `members` is the owner, the owning organisation's members and the repo's collaborators; `owner` is your own login |
 | `blockedFolders` | folder names, comma-separated | Folders Tonir never reads, lists or builds in |
 | `buildInstructions` | text | Extra rules added to every build lead's prompt |
 | `autoOpenAgents` | `on-spawn` (default), `never` | Whether Tonir opens when an agent starts |
