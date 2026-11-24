@@ -12,7 +12,7 @@
 <p align="center">
   <picture>
     <source srcset="media/pane-dark.png" media="(prefers-color-scheme: dark)">
-    <img src="media/pane-light.png" width="442" alt="The Tonir pane: the repo nimbus and the session's cost line, a search field, an issue building with its pipeline and crew, two other agents with their bars, this session's issue marked Done, and the open issues of milestone v2.0 with Build, Branch ready and Failed on the right.">
+    <img src="media/pane-light.png" width="488" alt="The Tonir pane: the repo nimbus and the session's cost line, a search field, an issue building with its pipeline and crew, two other agents with their bars, this session's issue marked Done, and the open issues of milestone v2.0 with Build, Branch ready and Failed on the right.">
   </picture>
 </p>
 
@@ -45,7 +45,7 @@
 <p align="center">
   <picture>
     <source srcset="media/bar-dark.png" media="(prefers-color-scheme: dark)">
-    <img src="media/bar-light.png" width="800" alt="The bar above the prompt in its four states: an issue building with its pipeline and stage, an agent running with its bar, this session's issue marked Done, and the repo name when nothing runs; each with one Open Tonir button.">
+    <img src="media/bar-light.png" width="100%" alt="The bar above the prompt in its four states: an issue building with its pipeline and stage, an agent running with its bar, this session's issue marked Done, and the repo name when nothing runs; each with one Open Tonir button.">
   </picture>
 </p>
 
