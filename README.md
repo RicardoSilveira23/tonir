@@ -9,6 +9,13 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-6f4df6" alt="GPL-3.0 licence"></a>
 </p>
 
+<p align="center">
+  <picture>
+    <source srcset="media/pane-dark.png" media="(prefers-color-scheme: dark)">
+    <img src="media/pane-light.png" width="442" alt="The Tonir pane: the repo nimbus and the session's cost line, a search field, an issue building with its pipeline and crew, two other agents with their bars, this session's issue marked Done, and the open issues of milestone v2.0 with Build, Branch ready and Failed on the right.">
+  </picture>
+</p>
+
 > [!NOTE]
 > Tonir is a Claude Code plugin built on the app's mod hooks, which are new and still change.
 > A Claude Code update can break it before Tonir catches up. When something breaks or reads
@@ -35,8 +42,26 @@
 - **A bar above the prompt**, when you turn it on: the pane's top item in one line, and an
   "Open Tonir" button.
 
+<p align="center">
+  <picture>
+    <source srcset="media/bar-dark.png" media="(prefers-color-scheme: dark)">
+    <img src="media/bar-light.png" width="800" alt="The bar above the prompt in its four states: an issue building with its pipeline and stage, an agent running with its bar, this session's issue marked Done, and the repo name when nothing runs; each with one Open Tonir button.">
+  </picture>
+</p>
+
 Open it with `/tonir`, from the right-click menu, or from the bar. It opens by itself when an
 agent starts after a quiet spell, unless you turn that off.
+
+Docked above or below the chat, where the pane is wide and short, everything moves to one
+header line, builds and agents sit in an Activity column, and the issues flow into as many
+columns as fit:
+
+<p align="center">
+  <picture>
+    <source srcset="media/docked-dark.png" media="(prefers-color-scheme: dark)">
+    <img src="media/docked-light.png" width="100%" alt="The pane docked below the chat: one header line with the repo, the cost line and the search field; an Activity column with a building issue and two agents; and the issues of this session and of milestone v2.0 in three columns.">
+  </picture>
+</p>
 
 ## Installing
 
