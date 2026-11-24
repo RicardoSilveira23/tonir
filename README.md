@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="media/logo.svg" width="96" height="96" alt="Tonir logo: a clay pit oven seen from above, a sheet of bread on its wall and a flame at the bottom, on a terracotta tile">
+</p>
+
 <h1 align="center">Tonir</h1>
 
 <p align="center">
