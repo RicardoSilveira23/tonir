@@ -59,7 +59,7 @@ columns as fit:
 <p align="center">
   <picture>
     <source srcset="media/docked-dark.png" media="(prefers-color-scheme: dark)">
-    <img src="media/docked-light.png" width="100%" alt="The pane docked below the chat: one header line with the repo, the cost line and the search field; an Activity column with a building issue and two agents; and the issues of this session and of milestone v2.0 in three columns.">
+    <img src="media/docked-light.png" width="100%" alt="The pane docked below the chat: one header line with the repo, the cost line and the search field; an Activity column with a building issue and two agents; and the issues of this session and of milestone v2.0 in two columns.">
   </picture>
 </p>
 
