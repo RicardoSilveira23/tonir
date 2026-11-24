@@ -12,7 +12,7 @@
 <p align="center">
   <picture>
     <source srcset="media/pane-dark.png" media="(prefers-color-scheme: dark)">
-    <img src="media/pane-light.png" width="488" alt="The Tonir pane: the repo nimbus and the session's cost line, a search field, an issue building with its pipeline and crew, two other agents with their bars, this session's issue marked Done, and the open issues of milestone v2.0 with Build, Branch ready and Failed on the right.">
+    <img src="media/pane-light.png" width="488" alt="The Tonir pane: the repo nimbus and the session's cost line, a search field, an issue building with its pipeline and crew, the Main row for the session's own agent (model, effort, context, cost, running), two other agents with their bars, this session's issue marked Done, and the open issues of milestone v2.0 with Build, Branch ready and Failed on the right.">
   </picture>
 </p>
 
@@ -60,7 +60,7 @@ columns as fit:
 <p align="center">
   <picture>
     <source srcset="media/docked-dark.png" media="(prefers-color-scheme: dark)">
-    <img src="media/docked-light.png" width="100%" alt="The pane docked below the chat: one header line with the repo, the cost line and the search field; an Activity column with a building issue and two agents; and the issues of this session and of milestone v2.0 in two columns.">
+    <img src="media/docked-light.png" width="100%" alt="The pane docked below the chat: one header line with the repo, the cost line and the search field; an Activity column with a building issue, the Main line and two agents; and the issues of this session and of milestone v2.0 in two columns.">
   </picture>
 </p>
 
