@@ -109,7 +109,13 @@ export function stubs(on: On, options: Options = {}) {
   const clock = mock.clock(on, { now: options.now ?? 1_000_000 })
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('ui.toast', () => ({ value: undefined }))
-  on('ui.status', () => ({ value: undefined }))
+  // Every text the status line was given.
+  const statuses: string[] = []
+  on('ui.status', (_, e) => {
+    statuses.push(String(e.text))
+
+    return { value: undefined }
+  })
   on('ui.log', () => ({ value: undefined }))
   on('ui.open', (_, e) => {
     opened.push(e.id)
@@ -271,7 +277,7 @@ export function stubs(on: On, options: Options = {}) {
     return { value: { isDrawn: true } } as never
   })
 
-  return { touched, spawns, ghCalls, ghArgv, ghOther, themeCalls, registered, opened, clock }
+  return { touched, spawns, ghCalls, ghArgv, ghOther, statuses, themeCalls, registered, opened, clock }
 }
 
 export const done = (agentId?: string) =>

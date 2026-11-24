@@ -439,6 +439,12 @@ export const registerAgentsPanel: Register = on => {
                 },
           ),
         )
+        // The status line follows each request, as the pane does, not only the end of a turn.
+        try {
+          await publishStatus($)
+        } catch {
+          // the status line lags, the request goes on
+        }
       }
 
       yield chunk

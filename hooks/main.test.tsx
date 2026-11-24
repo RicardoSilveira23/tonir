@@ -70,3 +70,19 @@ test('a subagent request does not make the main loop running', async ($, on) => 
   expect(await detail(ui)).toContain(' · idle · ')
   await ui.unmount()
 })
+
+test('the status line follows each subagent request, not only the end of a turn', async ($, on) => {
+  const { statuses } = stubs(on, { repos })
+  on('turn.step', async function* (_, e) {
+    yield stop('claude-sonnet-5-5', 1_000_000, 0) as never
+
+    return loose({ turnId: e.turnId, index: e.index, answer: '', toolUses: [] })
+  })
+  await startIn($, 'C:/Code/alpha')
+  await $.agent.spawn(loose({ subagentType: 'Explore', model: 'claude-sonnet-5-5', description: 'Look', prompt: 'a' }))
+  statuses.length = 0
+  for await (const chunk of $.turn.step(loose({ turnId: 't', index: 0, model: 'claude-sonnet-5-5', messageCount: 1, agentId: 'agent-1' }))) void chunk
+
+  expect(statuses.length).toBeGreaterThan(0)
+  expect(statuses.at(-1)).not.toBe('≈$0.00 · cache 0%')
+})
