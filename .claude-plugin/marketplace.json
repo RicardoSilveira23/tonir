@@ -1,0 +1,13 @@
+{
+  "name": "tonir",
+  "owner": {
+    "name": "Ricardo Silveira"
+  },
+  "description": "Tonir: GitHub issues, a one-press Build and the session's agents in one pane of the Claude desktop app.",
+  "plugins": [
+    {
+      "name": "tonir",
+      "source": "./"
+    }
+  ]
+}

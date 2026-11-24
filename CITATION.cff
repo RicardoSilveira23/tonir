@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use Tonir in your work, you can cite it like this."
+title: Tonir
+type: software
+authors:
+  - given-names: Ricardo
+    family-names: Silveira
+abstract: "A Claude Code plugin: the GitHub issues of the repo you're working in, a one-press Build for each, and every agent of the session, in one pane in the Claude desktop app."
+repository-code: "https://github.com/RicardoSilveira23/tonir"
+license: GPL-3.0-or-later
+keywords:
+  - claude-code
+  - claude-code-plugin
+  - github-issues
+  - agents
+  - typescript

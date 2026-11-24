@@ -1,0 +1,92 @@
+{
+  "name": "tonir",
+  "version": "0.7.0",
+  "description": "Tonir: an Issues pane that follows the repo you are working in, with a one-press Build pipeline, and a live Agents pane with step progress, context, cost and time.",
+  "author": {
+    "name": "Ricardo Silveira"
+  },
+  "homepage": "https://github.com/RicardoSilveira23/tonir",
+  "repository": "https://github.com/RicardoSilveira23/tonir",
+  "license": "GPL-3.0-or-later",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "isolation": {
+      "type": "string",
+      "title": "Build isolation",
+      "description": "worktree: a build runs in its own git worktree and never touches your checkout. none: it works in the session's folder.",
+      "options": [
+        "worktree",
+        "none"
+      ],
+      "default": "worktree"
+    },
+    "leadModel": {
+      "type": "string",
+      "title": "Build lead model",
+      "description": "The model of the agent that leads a build; inherit uses the session's model.",
+      "options": [
+        "opus",
+        "sonnet",
+        "haiku",
+        "fable",
+        "inherit"
+      ],
+      "default": "opus"
+    },
+    "coderAgent": {
+      "type": "string",
+      "title": "Coder agent",
+      "description": "Agent type that writes the code; general-purpose is used when no such type exists.",
+      "default": "coder"
+    },
+    "validatorAgent": {
+      "type": "string",
+      "title": "Validator agent",
+      "description": "Agent type that reviews the change; general-purpose is used when no such type exists.",
+      "default": "validator"
+    },
+    "trustedAuthors": {
+      "type": "string",
+      "title": "Whose issues can be built",
+      "description": "members: owner, members and collaborators of the repo. owner: the repo owner only. anyone: every author.",
+      "options": [
+        "members",
+        "owner",
+        "anyone"
+      ],
+      "default": "members"
+    },
+    "blockedFolders": {
+      "type": "string",
+      "title": "Blocked folders",
+      "description": "Folder names, separated by commas, that Tonir never reads, lists or builds in (matched on any part of a path).",
+      "default": ""
+    },
+    "buildInstructions": {
+      "type": "string",
+      "title": "Build instructions",
+      "description": "Extra rules added to every build lead's prompt, under 'Project rules from the person'.",
+      "default": ""
+    },
+    "autoOpenAgents": {
+      "type": "string",
+      "title": "Open Tonir on agents",
+      "description": "on-spawn: open Tonir when an agent starts after a quiet spell. never: only when you ask.",
+      "options": [
+        "on-spawn",
+        "never"
+      ],
+      "default": "on-spawn"
+    },
+    "openBar": {
+      "type": "string",
+      "title": "Bar above the prompt",
+      "description": "on: one row above the prompt with the open count and buttons for the Issues and Agents panes.",
+      "options": [
+        "off",
+        "on"
+      ],
+      "default": "off"
+    }
+  }
+}

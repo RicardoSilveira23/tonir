@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: The README
+    url: https://github.com/RicardoSilveira23/tonir#readme
+    about: Installing, settings, what it runs and sends
+  - name: A security problem
+    url: https://github.com/RicardoSilveira23/tonir/security/advisories/new
+    about: Report it privately, not in an issue
