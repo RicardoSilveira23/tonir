@@ -1372,7 +1372,7 @@ export const registerIssues: Register = on => {
               <Text dimColor size="footnote" wrap="wrap">
                 <Text color={colourOfKind('main')}>main</Text>
                 {' · '}
-                {[main.model === '' ? '' : modelName(main.model), `ctx ${main.ctx}%`, fmtTokens(main.tokens), `≈${fmtCost(main.cost)}`].filter(x => x !== '').join(' · ')}
+                {[main.model === '' ? '' : modelName(main.model), main.effort, `ctx ${main.ctx}%`, fmtTokens(main.tokens), `≈${fmtCost(main.cost)}`].filter(x => x !== '').join(' · ')}
                 {' · '}
                 <Text color={main.isRunning ? TONE.busy : undefined}>{mainWord}</Text>
                 {' · '}
@@ -1436,7 +1436,6 @@ export const registerIssues: Register = on => {
           {av.isListed ? `Session · ${totalsLine(av.totals)}` : 'Session · –'}
         </Text>
       )
-      const agentsEmpty = av.rows.length === 0 ? 'No agents yet in this session.' : 'No other agents.'
 
       // Under the row: the note and a quiet Retry beside a failure.
       const INDENT = isNarrow ? 0 : 3
@@ -1772,6 +1771,7 @@ export const registerIssues: Register = on => {
             {header('No repository', '')}
             {sessionLine}
             <Text dimColor>{noRepoNote(where)}</Text>
+            {av.isListed && mainRow}
             {agentsSection}
           </Box>
         )
@@ -1797,9 +1797,9 @@ export const registerIssues: Register = on => {
                 {building.map(i => buildCard(i))}
                 {av.isListed && mainLine}
                 {av.isListed && others.map(agentLine)}
-                {building.length === 0 && others.length === 0 && (
+                {!av.isListed && (
                   <Text dimColor size="footnote">
-                    {av.isListed ? agentsEmpty : '–'}
+                    –
                   </Text>
                 )}
               </Box>
@@ -1928,6 +1928,9 @@ export const registerIssues: Register = on => {
             {list.map(plainRow)}
           </Box>
         ))}
+        <Text key="agent:main" wrap="truncate-end">
+          {`main · Main · ${av.main.isRunning ? 'running' : 'idle'} · ctx ${av.main.ctx}% · ${fmtTime(av.main.time)}`}
+        </Text>
         <Box key="section:agents" flexDirection="column" gap={1}>
           <Text bold>{`Other agents · ${av.rows.filter(a => !(issueOf(a) !== null && ranked.some(i => i.number === issueOf(a)))).length}`}</Text>
           {av.rows

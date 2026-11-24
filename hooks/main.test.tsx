@@ -26,7 +26,7 @@ test('the main loop has a row of its own above Other agents: the session model, 
   await ui.unmount()
 })
 
-test('a model request of the main loop makes it running with its context; the end of its turn makes it idle', async ($, on) => {
+test('a model request of the main loop makes it running with its context and effort; the end of its turn makes it idle', async ($, on) => {
   stubs(on, { repos })
   on('turn.step', async function* (_, e) {
     yield stop('claude-opus-5-5', 400_000, 2_000) as never
@@ -34,8 +34,10 @@ test('a model request of the main loop makes it running with its context; the en
     return loose({ turnId: e.turnId, index: e.index, answer: '', toolUses: [] })
   })
   await startIn($, 'C:/Code/alpha')
-  for await (const chunk of $.turn.step(loose({ turnId: 't', index: 0, model: 'claude-opus-5-5', messageCount: 1 }))) void chunk
+  for await (const chunk of $.turn.step(loose({ turnId: 't', index: 0, model: 'claude-opus-5-5', effort: 'high', messageCount: 1 }))) void chunk
   const running = await $.ui.mount(ISSUES)
+
+  expect(await detail(running)).toMatch(/^main · Opus 5\.5 · high · ctx /)
 
   expect(await detail(running)).toMatch(/ · ctx \d+% · /)
   expect(await detail(running)).not.toContain('ctx 0%')
@@ -85,4 +87,59 @@ test('the status line follows each subagent request, not only the end of a turn'
 
   expect(statuses.length).toBeGreaterThan(0)
   expect(statuses.at(-1)).not.toBe('≈$0.00 · cache 0%')
+})
+
+test('with no repository the Main row still sits above Other agents', async ($, on) => {
+  stubs(on, { repos })
+  await startIn($, 'C:/Code/notes')
+  await $.agent.spawn(loose({ subagentType: 'Explore', description: 'Look', prompt: 'a' }))
+  const ui = await $.ui.mount(ISSUES)
+  const words = await texts(ui)
+
+  expect(words.some(t => t.startsWith('No git repository'))).toBe(true)
+  expect(words.indexOf('Main')).toBeGreaterThan(-1)
+  expect(words.indexOf('Main')).toBeLessThan(words.indexOf('Other agents · 1 ▾'))
+  await ui.unmount()
+})
+
+for (const reason of ['aborted', 'error'] as const) test(`a main turn that ends ${reason} without usage sets the row back to idle`, async ($, on) => {
+  stubs(on, { repos })
+  on('turn.step', async function* (_, e) {
+    yield stop('claude-opus-5-5', 1_000, 10) as never
+
+    return loose({ turnId: e.turnId, index: e.index, answer: '', toolUses: [] })
+  })
+  await startIn($, 'C:/Code/alpha')
+  for await (const chunk of $.turn.step(loose({ turnId: 't', index: 0, model: 'claude-opus-5-5', messageCount: 1 }))) void chunk
+  await $.turn.complete(loose({ ...done(), reason, isAborted: reason === 'aborted' }))
+  const ui = await $.ui.mount(ISSUES)
+
+  expect(await detail(ui)).toContain(' · idle · ')
+  await ui.unmount()
+})
+
+test("the engine's own context figure wins over Tonir's guess", async ($, on) => {
+  stubs(on, { repos })
+  on('session.usage', () => ({ value: loose<never>({ startedAt: 0, context: { tokens: 180_000, window: 200_000 }, rateLimits: [] }) }))
+  await startIn($, 'C:/Code/alpha')
+  const ui = await $.ui.mount(ISSUES)
+
+  expect(await detail(ui)).toContain(' · ctx 90% · ')
+  await ui.unmount()
+})
+
+test('a fresh or just compacted context reads 0 until the next response, not the old fill', async ($, on) => {
+  stubs(on, { repos })
+  on('turn.step', async function* (_, e) {
+    yield stop('claude-opus-5-5', 400_000, 10) as never
+
+    return loose({ turnId: e.turnId, index: e.index, answer: '', toolUses: [] })
+  })
+  on('session.usage', () => ({ value: loose<never>({ startedAt: 0, context: { window: 1_000_000 }, rateLimits: [] }) }))
+  await startIn($, 'C:/Code/alpha')
+  for await (const chunk of $.turn.step(loose({ turnId: 't', index: 0, model: 'claude-opus-5-5', messageCount: 1 }))) void chunk
+  const ui = await $.ui.mount(ISSUES)
+
+  expect(await detail(ui)).toContain(' · ctx 0% · ')
+  await ui.unmount()
 })

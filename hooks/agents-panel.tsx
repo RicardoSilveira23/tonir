@@ -15,8 +15,8 @@ const panel = atom({ plugin: 'tonir', key: 'panel' } as const, { isListed: false
 })
 const mainUsage = atom(
   { plugin: 'tonir', key: 'mainUsage' } as const,
-  { cost: 0, tokens: 0, input: 0, cacheRead: 0, startedAt: 0, contextTokens: 0, contextMax: 0, model: '', isRunning: false } as MainUsage,
-  { shape: 'main-usage-3' },
+  { cost: 0, tokens: 0, input: 0, cacheRead: 0, startedAt: 0, contextTokens: 0, contextMax: 0, model: '', effort: '', isRunning: false } as MainUsage,
+  { shape: 'main-usage-4' },
 )
 const now = atom({ plugin: 'tonir', key: 'now' } as const, 0)
 
@@ -255,7 +255,7 @@ export async function initAgentsPanel($: EngineInterface): Promise<void> {
     void (async () => {
       const list = await read($, agents)
 
-      if (!list.some(a => a.status === 'running')) return
+      if (!list.some(a => a.status === 'running') && !(await read($, mainUsage)).isRunning) return
 
       const tick = await $.clock.now()
       await update($, now, () => tick)
@@ -400,7 +400,11 @@ export const registerAgentsPanel: Register = on => {
 
     if (agentId === undefined) {
       try {
-        await update($, mainUsage, old => (old.isRunning && old.model === e.model ? old : { ...old, isRunning: true, model: e.model }))
+        const effort = typeof e.effort === 'string' ? e.effort : ''
+
+        await update($, mainUsage, old =>
+          old.isRunning && old.model === e.model && old.effort === effort ? old : { ...old, isRunning: true, model: e.model, effort },
+        )
       } catch {
         // the main row lags, the request goes on
       }
@@ -422,28 +426,28 @@ export const registerAgentsPanel: Register = on => {
         const u = chunk.usage
         const prompt = u.input_tokens + u.cache_read_input_tokens + u.cache_creation_input_tokens
 
-        await update($, agents, list =>
-          list.map(a =>
-            a.agentId !== agentId && a.id !== agentId
-              ? a
-              : {
-                  ...a,
-                  tokens: a.tokens + prompt + u.output_tokens,
-                  costUsd: a.costUsd + costOf(e.model, u, true),
-                  steps: a.steps + 1,
-                  promptTokens: a.promptTokens + prompt,
-                  cacheRead: a.cacheRead + u.cache_read_input_tokens,
-                  contextTokens: prompt,
-                  contextMax: a.contextMax > 0 ? a.contextMax : windowOf(e.model),
-                  effort: typeof e.effort === 'string' ? e.effort : a.effort,
-                },
-          ),
-        )
-        // The status line follows each request, as the pane does, not only the end of a turn.
         try {
+          await update($, agents, list =>
+            list.map(a =>
+              a.agentId !== agentId && a.id !== agentId
+                ? a
+                : {
+                    ...a,
+                    tokens: a.tokens + prompt + u.output_tokens,
+                    costUsd: a.costUsd + costOf(e.model, u, true),
+                    steps: a.steps + 1,
+                    promptTokens: a.promptTokens + prompt,
+                    cacheRead: a.cacheRead + u.cache_read_input_tokens,
+                    contextTokens: prompt,
+                    contextMax: a.contextMax > 0 ? a.contextMax : windowOf(e.model),
+                    effort: typeof e.effort === 'string' ? e.effort : a.effort,
+                  },
+            ),
+          )
+          // The status line follows each request, as the pane does, not only the end of a turn.
           await publishStatus($)
         } catch {
-          // the status line lags, the request goes on
+          // the row and the status line lag, the request goes on
         }
       }
 
@@ -453,23 +457,35 @@ export const registerAgentsPanel: Register = on => {
 }
 
 // The main loop as one agent of its own: its model, how full its context is, what it has used and whether it runs.
-export type MainView = { model: string; ctx: number; tokens: number; cost: number; time: number; isRunning: boolean }
+export type MainView = { model: string; effort: string; ctx: number; tokens: number; cost: number; time: number; isRunning: boolean }
 
 async function mainView($: EngineInterface, at: number): Promise<MainView> {
   const m = await read($, mainUsage)
   let model = m.model
+  // Tonir's own guess from the latest request; the engine's figure, which knows the real window and a /compact,
+  // wins when it is there.
+  let ctx = m.contextMax > 0 ? Math.min(100, Math.round((m.contextTokens / m.contextMax) * 100)) : 0
 
-  if (model === '') {
-    try {
-      model = await $.session.model()
-    } catch {
-      // no model to name yet
-    }
+  try {
+    model = (await $.session.model()) || model
+  } catch {
+    // the latest request's model stands
+  }
+  try {
+    const c = (await $.session.usage()).context
+    const fill = c.percent ?? (c.tokens !== undefined && c.window > 0 ? (c.tokens / c.window) * 100 : undefined)
+
+    if (fill !== undefined && Number.isFinite(fill)) ctx = Math.max(0, Math.min(100, Math.round(fill)))
+    // A window with no fill yet is a fresh or just compacted context: nothing in it until the next response.
+    else if (c.window > 0) ctx = 0
+  } catch {
+    // no figure from the engine: the guess stands
   }
 
   return {
     model,
-    ctx: m.contextMax > 0 ? Math.min(100, Math.round((m.contextTokens / m.contextMax) * 100)) : 0,
+    effort: m.effort,
+    ctx,
     tokens: m.tokens,
     cost: m.cost,
     time: m.startedAt > 0 ? Math.max(0, at - m.startedAt) : 0,

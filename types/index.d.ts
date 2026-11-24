@@ -136,6 +136,8 @@ export type MainUsage = {
   contextTokens: number
   contextMax: number
   model: string
+  // the effort of its latest request, '' when none was given
+  effort: string
   // true from the main loop's first model request of a turn until the turn completes
   isRunning: boolean
 }
